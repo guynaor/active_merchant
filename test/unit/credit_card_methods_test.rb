@@ -129,6 +129,11 @@ class CreditCardMethodsTest < Test::Unit::TestCase
     assert_equal 'laser', CreditCard.type?('677117111234')
   end
   
+  def test_should_detect_isracard
+    assert_equal 'isracard', CreditCard.type?('10830529')
+    assert_equal 'isracard', CreditCard.type?('010830529')
+  end
+  
   def test_should_detect_when_an_argument_type_does_not_match_calculated_type
     assert CreditCard.matching_type?('4175001000000000', 'visa')
     assert_false CreditCard.matching_type?('4175001000000000', 'master')

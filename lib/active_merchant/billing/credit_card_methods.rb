@@ -14,7 +14,8 @@ module ActiveMerchant #:nodoc:
         'dankort'            => /^5019\d{12}$/,
         'maestro'            => /^(5[06-8]|6\d)\d{10,17}$/,
         'forbrugsforeningen' => /^600722\d{10}$/,
-        'laser'              => /^(6304|6706|6771|6709)\d{8}(\d{4}|\d{6,7})?$/
+        'laser'              => /^(6304|6706|6771|6709)\d{8}(\d{4}|\d{6,7})?$/,
+        'isracard'           => /^\d{8,9}$/
       }
     
       def self.included(base)
@@ -100,7 +101,7 @@ module ActiveMerchant #:nodoc:
         private
         
         def valid_card_number_length?(number) #:nodoc:
-          number.to_s.length >= 12
+          number.to_s.length >= 12 || (type?(number) == 'isracard' && [8,9].include?(number.to_s.length))
         end
         
         def valid_test_mode_card_number?(number) #:nodoc:
@@ -110,14 +111,20 @@ module ActiveMerchant #:nodoc:
         
         # Checks the validity of a card number by use of the the Luhn Algorithm. 
         # Please see http://en.wikipedia.org/wiki/Luhn_algorithm for details.
+        # The Isracard validation is explained here: http://halemo.net/info/isracard/index.html
         def valid_checksum?(number) #:nodoc:
-          sum = 0
-          for i in 0..number.length
-            weight = number[-1 * (i + 2), 1].to_i * (2 - (i % 2))
-            sum += (weight < 10) ? weight : weight - 9
-          end
+          if type?(number) == 'isracard'
+            cc_num = number.to_s.rjust(9, '0')
+            (0..8).inject(0){|memo, i| memo + (cc_num[i] - 48) * (9-i) } % 11 == 0
+          else
+            sum = 0
+            for i in 0..number.length
+              weight = number[-1 * (i + 2), 1].to_i * (2 - (i % 2))
+              sum += (weight < 10) ? weight : weight - 9
+            end
           
-          (number[-1,1].to_i == (10 - sum % 10) % 10)
+            (number[-1,1].to_i == (10 - sum % 10) % 10)
+          end
         end
       end
     end

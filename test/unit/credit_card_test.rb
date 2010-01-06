@@ -39,6 +39,16 @@ class CreditCardTest < Test::Unit::TestCase
     assert       @solo.errors.empty?
   end
   
+  def test_should_be_a_valid_isracard_card
+    isra = credit_card("10830529",  :type => "isracard")
+    assert_valid isra
+    assert       isra.errors.empty?
+
+    isra = credit_card("010830529",  :type => "isracard")
+    assert_valid isra
+    assert       isra.errors.empty?
+  end
+  
   def test_cards_with_empty_names_should_not_be_valid
     @visa.first_name = ''
     @visa.last_name  = '' 
@@ -81,6 +91,11 @@ class CreditCardTest < Test::Unit::TestCase
     assert_not_valid @visa
     assert_false @visa.errors.on(:type)
     assert       @visa.errors.on(:number)
+
+    isra = credit_card("012345678", :type => "isracard")
+    assert_not_valid isra
+    assert_false isra.errors.on(:type)
+    assert       isra.errors.on(:number)
   end
 
   def test_should_have_errors_with_invalid_card_type_for_otherwise_correct_number
